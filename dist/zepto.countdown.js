@@ -1,5 +1,5 @@
 /*!
- * The Final Countdown for jQuery v2.2.0 (http://hilios.github.io/jQuery.countdown/)
+ * The Final Countdown for Zetp v1.2.0 (http://hilios.github.io/jQuery.countdown/)
  * Copyright (c) 2016 Edson Hilios
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -22,16 +22,19 @@
 (function(factory) {
     "use strict";
     if (typeof define === "function" && define.amd) {
-        define([ "jquery" ], factory);
+        define([ "zepto" ], factory);
     } else {
-        factory(jQuery);
+        factory(Zepto);
     }
 })(function($) {
     "use strict";
     var instances = [], matchers = [], defaultOptions = {
         precision: 100,
         elapse: false,
-        defer: false
+        defer: false,
+        onupdate: $.noop,
+        onstoped: $.noop,
+        onfinish: $.noop
     };
     matchers.push(/^[0-9]*$/.source);
     matchers.push(/([0-9]{1,2}\/){2}[0-9]{4}( [0-9]{1,2}(:[0-9]{2}){2})?/.source);
@@ -127,13 +130,7 @@
         instances.push(this);
         this.$el.data("countdown-instance", this.instanceNumber);
         if (options) {
-            if (typeof options === "function") {
-                this.$el.on("update.countdown", options);
-                this.$el.on("stoped.countdown", options);
-                this.$el.on("finish.countdown", options);
-            } else {
-                this.options = $.extend({}, defaultOptions, options);
-            }
+            this.options = $.extend({}, defaultOptions, options);
         }
         this.setFinalDate(finalDate);
         if (this.options.defer === false) {
@@ -182,11 +179,11 @@
                 this.remove();
                 return;
             }
-            var hasEventsAttached = $._data(this.el, "events") !== undefined, now = new Date(), newTotalSecsLeft;
+            var now = new Date(), newTotalSecsLeft;
             newTotalSecsLeft = this.finalDate.getTime() - now.getTime();
             newTotalSecsLeft = Math.ceil(newTotalSecsLeft / 1e3);
             newTotalSecsLeft = !this.options.elapse && newTotalSecsLeft < 0 ? 0 : Math.abs(newTotalSecsLeft);
-            if (this.totalSecsLeft === newTotalSecsLeft || !hasEventsAttached) {
+            if (this.totalSecsLeft === newTotalSecsLeft) {
                 return;
             } else {
                 this.totalSecsLeft = newTotalSecsLeft;
@@ -216,12 +213,13 @@
             }
         },
         dispatchEvent: function(eventName) {
-            var event = $.Event(eventName + ".countdown");
-            event.finalDate = this.finalDate;
-            event.elapsed = this.elapsed;
-            event.offset = $.extend({}, this.offset);
-            event.strftime = strftime(this.offset);
-            this.$el.trigger(event);
+            var obj = {
+                finalDate: this.finalDate,
+                elapsed: this.elapsed,
+                offset: $.extend({}, this.offset),
+                strftime: strftime(this.offset)
+            };
+            this.options['on' + eventName].call(this.el, obj);
         }
     });
     $.fn.countdown = function() {
@@ -236,7 +234,7 @@
                     instance.setFinalDate.call(instance, method);
                     instance.start();
                 } else {
-                    $.error("Method %s does not exist on jQuery.countdown".replace(/\%s/gi, method));
+                    $.error("Method %s does not exist on zepto.countdown".replace(/\%s/gi, method));
                 }
             } else {
                 new Countdown(this, argumentsArray[0], argumentsArray[1]);
