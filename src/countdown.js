@@ -3,9 +3,9 @@
   'use strict';
 
   if (typeof define === 'function' && define.amd) {
-    define(['jquery'], factory);
+    define(['zepto'], factory);
   } else {
-    factory(jQuery);
+    factory(Zepto);
   }
 })(function($){
   'use strict';
@@ -259,7 +259,7 @@
       this.$el.trigger(event);
     }
   });
-  // Register the jQuery selector actions
+  // Register the Zepto selector actions
   $.fn.countdown = function() {
     var argumentsArray = Array.prototype.slice.call(arguments, 0);
     return this.each(function() {
@@ -280,7 +280,7 @@
           // Fix issue #38 (thanks to @yaoazhen)
           instance.start();
         } else {
-          $.error('Method %s does not exist on jQuery.countdown'
+          $.error('Method %s does not exist on Zepto.countdown'
             .replace(/\%s/gi, method));
         }
       } else {
